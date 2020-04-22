@@ -1,0 +1,6 @@
+Serverless Info:
+
+Todos ARN: arn:aws:dynamodb:us-east-2:091151377189:table/Todos
+
+Group: todos-group
+User: todos-user
