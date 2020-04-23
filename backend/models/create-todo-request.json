@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "todo",
     "type": "object",
     "properties": {
@@ -8,11 +8,14 @@
         },
         "dueDate": {
             "type": "string"
+        },
+        "done": {
+            "type": "string" 
+        },
+        "attachmentUrl": {
+            "type": "string"
         }
     },
-    "required": [
-        "name",
-        "dueDate"
-    ],
+    "required": ["name", "dueDate"],
     "additionalProperties": false
 }

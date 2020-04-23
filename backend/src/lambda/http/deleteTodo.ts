@@ -1,30 +1,41 @@
 import 'source-map-support/register'
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
+import { APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda'
 import * as middy from 'middy';
 import { cors } from 'middy/middlewares';
 
 import { deleteTodo } from '../../businessLogic/todos';
+import { getToken } from '../../auth/utils'
 import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('deleteTodoHandler');
 
-const deleteTodoHandler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent,): Promise<APIGatewayProxyResult> => {
-    logger.info('Delete a todo', event);
+export const handler = middy(
+ async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const todoId = event.pathParameters.todoId
 
-    const todoId = event.pathParameters.todoId;
-    const authorization = event.headers.Authorization;
-    const split = authorization.split(' ');
-    const jwtToken = split[1];
+    const jwtToken: string = getToken(event.headers.Authorization)
 
-    await deleteTodo(todoId, jwtToken);
+    try {
+      await deleteTodo(todoId, jwtToken)
 
-    return {
-        statusCode: 204,
-        body: '',
-    };
-};
+      return {
+        statusCode: 200,
+        body: ''
+      }
+    } catch (e) {
+      logger.error('Error: ' + e.message)
 
-export const handler = middy(deleteTodoHandler).use(
-    cors({ credentials: true }),
-);
+      return {
+        statusCode: 500,
+        body: e.message
+      }
+    }
+  }
+)
+
+handler.use(
+  cors({
+    credentials: true
+  })
+)

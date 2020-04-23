@@ -1,33 +1,43 @@
-import 'source-map-support/register';
+import 'source-map-support/register'
 
-import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
+import * as middy from 'middy'
+import { cors } from 'middy/middlewares'
 
-import * as middy from 'middy';
-import { cors } from 'middy/middlewares';
+import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
+import { updateTodo } from '../../businessLogic/todos'
+import { getToken } from '../../auth/utils'
+import { createLogger } from '../../utils/logger'
 
-import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest';
-import { updateTodo } from '../../businessLogic/todos';
-import { createLogger } from '../../utils/logger';
+const logger = createLogger('update-todo')
 
-const logger = createLogger('updateTodoHandler');
+export const handler = middy(
+  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    try {
+      const todoId = event.pathParameters.todoId
+      const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
 
-const updateTodoHandler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent,): Promise<APIGatewayProxyResult> => {
-    logger.info('Update a todo', event);
+      const jwtToken: string = getToken(event.headers.Authorization)
 
-    const todoId = event.pathParameters.todoId;
-    const updatedTodo: UpdateTodoRequest = JSON.parse(event.body);
-    const authorization = event.headers.Authorization;
-    const split = authorization.split(' ');
-    const jwtToken = split[1];
+      await updateTodo(todoId, updatedTodo, jwtToken)
 
-    await updateTodo(todoId, updatedTodo, jwtToken);
+      return {
+        statusCode: 200,
+        body: ''
+      }
+    } catch (e) {
+      logger.error('Error', { error: e.message })
 
-    return {
-        statusCode: 204,
-        body: '',
-    };
-};
+      return {
+        statusCode: 500,
+        body: e.message
+      }
+    }
+  }
+)
 
-export const handler = middy(updateTodoHandler).use(
-    cors({ credentials: true }),
-);
+handler.use(
+  cors({
+    credentials: true
+  })
+)
