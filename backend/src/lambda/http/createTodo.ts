@@ -1,6 +1,6 @@
 import 'source-map-support/register';
 
-import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
@@ -24,7 +24,7 @@ export const handler = middy(
         })
       }
     } catch (e) {
-      logger.error('Error: ' + e.message)
+      createLogger(`Error: ${e.message}`)
 
       return {
         statusCode: 500,
