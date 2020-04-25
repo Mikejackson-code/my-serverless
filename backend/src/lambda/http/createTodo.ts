@@ -19,6 +19,9 @@ export const handler = middy(
 
     return {
         statusCode: 201,
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },  
         body: JSON.stringify({
         newItem
         })
@@ -28,6 +31,9 @@ export const handler = middy(
 
       return {
         statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },  
         body: e.message
        }
     }

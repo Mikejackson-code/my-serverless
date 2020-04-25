@@ -23,6 +23,9 @@ export const handler = middy(
 
       return {
         statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },  
         body: ''
       }
     } catch (e) {
@@ -30,6 +33,9 @@ export const handler = middy(
 
       return {
         statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },  
         body: e.message
       }
     }
