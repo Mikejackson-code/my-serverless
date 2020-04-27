@@ -23,7 +23,7 @@ export const parseUserId = (jwtToken: string): string => {
 export const getToken = (authHeader: string): string => {
   if (!authHeader) throw new Error('No authentication header')
 
-  if (!authHeader.toLowerCase().startsWith('bearer '))
+  if (!authHeader.toLowerCase().startsWith('bearer='))
     throw new Error('Invalid authentication header')
 
   const split = authHeader.split(' ')

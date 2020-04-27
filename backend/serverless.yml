@@ -259,6 +259,7 @@ resources:
                 - POST
                 - DELETE
                 - HEAD
+                - SCAN 
               MaxAge: 3000
 
     BucketPolicy:
