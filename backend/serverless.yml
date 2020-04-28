@@ -1,3 +1,5 @@
+org: jacksonmike
+app: my-todo-app
 service:
   name: serverless-todo-app
 
@@ -258,8 +260,7 @@ resources:
                 - PUT
                 - POST
                 - DELETE
-                - HEAD
-                - SCAN 
+                - PATCH
               MaxAge: 3000
 
     BucketPolicy:
