@@ -54,7 +54,7 @@ export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAutho
   }
 }
 
-const verifyToken = async (authHeader: string): Promise<JwtPayload> => {
+  const verifyToken = async (authHeader: string): Promise<JwtPayload> => {
   const token = getToken(authHeader)
   const jwt: Jwt = decode(token, { complete: true }) as Jwt
 

@@ -6,6 +6,9 @@ plugins:
   - serverless-iam-roles-per-function
   - serverless-aws-documentation
   - serverless-reqvalidator-plugin
+  - serverless-deployment-bucket
+ 
+
   
 provider:
   name: aws
@@ -13,6 +16,9 @@ provider:
 
   stage: ${opt:stage, 'dev2'}
   region: ${opt:region, 'us-east-2'}
+  deploymentBucket:
+    name: my-serverless-todo-bucket
+    serverSideEncryption: AES256
 
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
@@ -68,6 +74,18 @@ functions:
       - http:
           method: post
           path: todos
+          cors: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a ToDo item
+            description: Create a ToDo Item
+            requestModels:
+              'application/json': CreateToDoRequest
+          iamRoleStatements:
+            - Effect: "Allow"
+              Action:
+                - dynamodb:PutItem
+              Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}          
 
   # TODO: Configure this function
   UpdateTodo:
@@ -76,6 +94,19 @@ functions:
       - http:
           method: patch
           path: todos/{todoId}
+          cors: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Update To Do item
+            description: Update To Do item
+            requestModels:
+              'application/json': UpdateToDoRequest
+          iamRoleStatements:
+            - Effect: "Allow"
+              Action:
+                - dynamodb:UpdateItem
+              Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+
 
   # TODO: Configure this function
   DeleteTodo:
@@ -84,6 +115,13 @@ functions:
       - http:
           method: delete
           path: todos/{todoId}
+          cors: true
+          iamRoleStatements:
+            - Effect: "Allow"
+              Action:
+                - dynamodb:DeleteItem
+              Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+
 
   # TODO: Configure this function
   GenerateUploadUrl:
@@ -92,6 +130,19 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
+          cors: true
+          iamRoleStatements:
+            - Effect: "Allow"
+              Action:
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+              Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+            - Effect: "Allow"
+              Action:
+                - s3:PutObject
+                - s3:GetObject
+              Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}/*
+
 
 resources:
   Resources:
@@ -107,14 +158,6 @@ resources:
     #    RestApiId:
     #      Ref: ApiGatewayRestApi
 
-    RequestBodyValidator:
-      Type: AWS::ApiGateway::RequestValidator
-      Properties:
-        Name: 'request-body-validator'
-        RestApiId:
-          Ref: ApiGatewayRestApi
-        ValidateRequestBody: true
-        ValidateRequestParameters: false
 
     TodosDynamoDBTable:
       Type: AWS::DynamoDB::Table
@@ -172,3 +215,12 @@ resources:
               Action: 's3:GetObject'
               Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}/*'
         Bucket: !Ref AttachmentsBucket
+
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false        
