@@ -1,3 +1,5 @@
+org: jacksonmike
+app: my-todo-app
 service:
   name: serverless-todo-app
 
@@ -13,7 +15,7 @@ plugins:
 provider:
   name: aws
   runtime: nodejs12.x
-
+  #cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   stage: ${opt:stage, 'dev2'}
   region: ${opt:region, 'us-east-2'}
   deploymentBucket:
