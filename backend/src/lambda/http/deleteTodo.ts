@@ -1,47 +1,24 @@
 import 'source-map-support/register'
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda'
-import * as middy from 'middy';
-import { cors } from 'middy/middlewares';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler} from 'aws-lambda'
 
+import { parseUserId } from '../../auth/utils'
 import { deleteTodo } from '../../businessLogic/todos';
-import { getToken } from '../../auth/utils'
-import { createLogger } from '../../utils/logger';
 
-const logger = createLogger('deleteTodoHandler');
-
-export const handler = middy(
- async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const todoId = event.pathParameters.todoId
 
-    const jwtToken: string = getToken(event.headers.Authorization)
+    const jwt = event.headers.Authorization.split (' ').pop()
+    const userId = parseUserId(jwt)
 
-    try {
-      await deleteTodo(todoId, jwtToken)
+    await deleteTodo(todoId, userId)
 
-      return {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*'
+    return {
+      statusCode: 204,
+      headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credntials': true
         },  
         body: ''
       }
-    } catch (e) {
-      logger.error('Error: ' + e.message)
-
-      return {
-        statusCode: 500,
-        headers: {
-          'Access-Control-Allow-Origin': '*'
-        },  
-        body: e.message
-      }
     }
-  }
-)
-
-handler.use(
-  cors({
-    credentials: true
-  })
-)

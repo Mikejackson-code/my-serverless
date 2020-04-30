@@ -12,7 +12,9 @@ const logger = createLogger('auth')
 // TODO: Provide a URL that can be used to download a certificate that can be used
 // to verify JWT token signature.
 // To get this URL you need to go to an Auth0 page -> Show Advanced Settings -> Endpoints -> JSON Web Key Set
-const jwksUrl = 'https://dev-5gla19j7.auth0.com/.well-known/jwks.json'
+//const jwksUrl = 'https://dev-5gla19j7.auth0.com/.well-known/jwks.json'
+
+const jwksUrl = process.env.AUTH0_JWTK_URL
 
 export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> => {
   logger.info('Authorizing a user', event.authorizationToken)
@@ -53,37 +55,24 @@ export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAutho
     }
   }
 }
-
-  const verifyToken = async (authHeader: string): Promise<JwtPayload> => {
+async function verifyToken(authHeader: string): Promise<JwtPayload> {  
   const token = getToken(authHeader)
   const jwt: Jwt = decode(token, { complete: true }) as Jwt
+  const jwks = await Axios.get(jwksUrl).then( res => res.data)
+  const key = jwks.keys.find( key => key.kid === jwt.header.kid)
 
-  const alg = jwt.header.alg
-  const kid = jwt.header.kid
-
-  // Retrieve JWKS
-  const response = await Axios.get(jwksUrl)
-
-  const jwks = response.data.keys
-  logger.info('jwks: ' + jwks)
-
-  const jwk = jwks[0]
-  logger.info('jwk: ' + jwk)
-
-  if (kid !== jwk.kid) throw new Error('Key mismatch')
-
-  const cert =
-    '-----BEGIN CERTIFICATE-----\n' + jwk.x5c[0] + '\n-----END CERTIFICATE-----'
-
-  logger.info('cert:\n' + cert)
-
-  return verify(token, cert, { algorithms: [alg] }) as JwtPayload
+  if (!key) throw new Error('Unauthrized')
+  
+  const cert = getCert(key.x5c[0])
+  
+  return verify(token, cert, { algorithms: ['RS256'] }) as JwtPayload
 }
 
-const getToken = (authHeader: string): string => {
+ 
+function getToken(authHeader: string): string {
   if (!authHeader) throw new Error('No authentication header')
 
-  if (!authHeader.toLowerCase().startsWith('bearer'))
+  if (!authHeader.toLowerCase().startsWith('bearer '))
     throw new Error('Invalid authentication header')
 
   const split = authHeader.split(' ')
@@ -91,3 +80,9 @@ const getToken = (authHeader: string): string => {
 
   return token
 }
+
+function getCert(key) {
+  key = key.match(/.{1,64}/g).join('\n');
+  key = `-----BEGIN CERTIFICATE-----\n${key}\n-----END CERTIFICATE-----\n`;
+  return key;
+};

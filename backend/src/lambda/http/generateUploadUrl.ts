@@ -1,46 +1,26 @@
-import 'source-map-support/register';
+import 'source-map-support/register'
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import * as middy from 'middy';
-import { cors } from 'middy/middlewares';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 
-import { generateUploadUrl } from '../../businessLogic/todos';
-import { createLogger } from '../../utils/logger';
+import { parseUserId } from '../../auth/utils'
+import { getPresignedURL } from '../../businessLogic/todos'
 
-const logger = createLogger ('Generate Upload URLs')
 
-export const handler = middy(
-    async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-      try {
-        const todoId = event.pathParameters.todoId
-  
-        const uploadUrl = await generateUploadUrl(todoId)
-  
-        return {
-          statusCode: 200,
-          headers: {
-            'Access-Control-Allow-Origin': '*'
-          },
-          body: JSON.stringify({
-            uploadUrl
-          })
-        }
-      } catch (e) {
-        logger.error('Error: ' + e.message)
-  
-        return {
-          statusCode: 500,
-          headers: {
-            'Access-Control-Allow-Origin': '*'
-          },  
-          body: e.message
-        }
-      }
-    }
-  )
-  
-  handler.use(
-    cors({
-      credentials: true
-    })
-  )
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  const todoId = event.pathParameters.todoId
+
+  const jwt = event.headers.Authorization.split(' ').pop()
+  const userId = parseUserId(jwt)
+
+  const uploadUrl = await getPresignedURL(userId, todoId)
+
+  return {
+    statusCode: 201,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Request-Method': "POST"
+    },
+    body: JSON.stringify({ uploadUrl })
+  }
+}
