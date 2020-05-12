@@ -10,6 +10,7 @@
     "http-errors": "^1.7.2",
     "jsonwebtoken": "^8.5.1",
     "middy": "^0.27.0",
+    "serverless-offline": "6.1.5",
     "source-map-support": "^0.5.11",
     "uuid": "^3.3.2",
     "winston": "^3.2.1"
@@ -19,19 +20,28 @@
     "@types/jsonwebtoken": "^8.3.2",
     "@types/node": "^10.17.21",
     "aws-sdk": "^2.433.0",
+    "eslint": "^7.0.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
     "serverless-aws-documentation": "^1.1.0",
-    "serverless-deployment-bucket": "^1.1.2",
     "serverless-dynamodb-local": "^0.2.39",
     "serverless-iam-roles-per-function": "^1.0.4",
     "serverless-plugin-canary-deployments": "^0.4.7",
     "serverless-reqvalidator-plugin": "^1.0.3",
-    "serverless-s3-local": "^0.5.4",
     "serverless-webpack": "^5.2.0",
-    "set-value": "3.0.2",
     "ts-loader": "^5.3.3",
-    "typescript": "^3.4.1",
+    "tslint": "^6.1.2",
+    "typescript": "^3.8.3",
     "webpack": "^4.42.1"
   },
   "author": "Ivan Mushketyk",
-  "license": "MIT"
+  "license": "MIT",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": []
 }

@@ -1,28 +1,30 @@
 import 'source-map-support/register';
-
-import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda';
-
-import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
-import { parseUserId } from '../../auth/utils'
-
-import { createTodo } from '../../businessLogic/todos'
-
-
+import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
+import { CreateTodoRequest } from '../../requests/CreateTodoRequest';
+import { createTodo } from '../../helpers/Todos';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const newTodo: CreateTodoRequest = JSON.parse(event.body)
+  const newTodo: CreateTodoRequest = JSON.parse(event.body);
 
-    const jwt = event.headers.Authorization.split(' ').pop()
-    const userId = parseUserId(jwt)
-
-    const item = await createTodo(newTodo, userId)
-
+  if (!newTodo.name) {
     return {
-        statusCode: 201,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true 
-        },  
-        body: JSON.stringify({ item })
-    }
+      statusCode: 400,
+      body: JSON.stringify({
+        error: 'name is empty'
+      })
+    };
   }
+
+  const todoItem = await createTodo(event, newTodo);
+
+  return {
+    statusCode: 201,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true
+    },
+    body: JSON.stringify({
+      item: todoItem
+    })
+  };
+}

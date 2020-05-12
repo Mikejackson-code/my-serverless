@@ -1,28 +1,27 @@
-import 'source-map-support/register'
-
-import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
-
-
-import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-import { parseUserId } from '../../auth/utils'
-import { updateTodo } from '../../businessLogic/todos'
-
+import 'source-map-support/register';
+import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
+import { updateTodo }  from '../../helpers/Todos';
+import { UpdateTodoRequest } from "../../requests/UpdateTodoRequest.1";
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const todoId = event.pathParameters.todoId
-    const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
+  const updatedTodo: UpdateTodoRequest = JSON.parse(event.body);
 
-    const jwt = event.headers.Authorization.split(' ').pop()
-    const userId = parseUserId(jwt) 
-
-    await updateTodo(updatedTodo, todoId, userId);
-
+  const updated = await updateTodo(event, updatedTodo);
+  if (!updated) {
     return {
-        statusCode: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true
-        },  
-        body: ''
-      }
-    } 
+      statusCode: 404,
+      body: JSON.stringify({
+        error: 'Item does not exist'
+      })
+    };
+  }
+
+  return {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true
+    },
+    body: JSON.stringify({})
+  }
+}

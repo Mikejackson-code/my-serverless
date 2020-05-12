@@ -1,26 +1,18 @@
-import 'source-map-support/register'
-
-import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
-
-import { parseUserId } from '../../auth/utils'
-import { getPresignedURL } from '../../businessLogic/todos'
-
+import 'source-map-support/register';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda';
+import { generateUploadUrl } from '../../helpers/Todos';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const todoId = event.pathParameters.todoId
-
-  const jwt = event.headers.Authorization.split(' ').pop()
-  const userId = parseUserId(jwt)
-
-  const uploadUrl = await getPresignedURL(userId, todoId)
+  const signedUrl = await generateUploadUrl(event);
 
   return {
-    statusCode: 201,
+    statusCode: 202,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true,
-      'Access-Control-Request-Method': "POST"
+      'Access-Control-Allow-Credentials': true
     },
-    body: JSON.stringify({ uploadUrl })
-  }
+    body: JSON.stringify({
+      uploadUrl: signedUrl
+    })
+  };
 }

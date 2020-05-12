@@ -1,24 +1,17 @@
-import 'source-map-support/register'
-
+import 'source-map-support/register';
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda';
+import { getTodos } from '../../helpers/Todos';
 
-
-import { parseUserId } from '../../auth/utils'
-import { getAllTodos } from '../../businessLogic/todos'
-
-export const handler:  APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const jwt = event.headers.Authorization.split(' ').pop()
-  
-  const userId = parseUserId(jwt)
-  const items = await getAllTodos(userId)
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
   return {
     statusCode: 200,
     headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Request-Method": "GET",
+      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Credentials': true
     },
-    body: JSON.stringify({ items })
-  }
+    body: JSON.stringify({
+      items: await getTodos(event)
+    })
+  };
 }
